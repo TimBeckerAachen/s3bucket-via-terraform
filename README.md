@@ -27,8 +27,9 @@ stack did not cost me anything.
 ![AWS_user_name.png](images%2FAWS_user_name.png)
    - Then you need to attach a policy to the user. Policies define what AWS users or AWS roles are 
    allowed to do in the cloud. For this basic example we select a AWS managed policy `AmazonS3FullAccess`.
-   With this policy our user has full control over S3. Usually, you should make sure that you restrict
-   permissions as much as possible, but for this introductory example full access is fine.
+   With this policy our user has full control over S3. Remember, in a real-world scenario, you would 
+   limit permissions to follow the principle of least privilege, but for this introductory example 
+   full access is fine.
 ![AWS_attach_policy.png](images%2FAWS_attach_policy.png)
    - After attaching the policy you can review what you did so far and create the user.
 ![AWS_create_user.png](images%2FAWS_create_user.png)
@@ -48,33 +49,44 @@ stack did not cost me anything.
 Do not share your access key and be very careful to not display it to github. Someone else could use it
 and create costs in your AWS account.
 
+2. Configure AWS CLI on your local machine:
+   - To connect to AWS from my local machine, I found it to be the easiest way to configure a profile. 
+   The profile is connected to the user you just created. This option also enables you to create several 
+   users and profiles with different permissions. Just type `aws configure --profile <profile_name>` into
+   your terminal and enter the access key ID and secret of your user. You must also enter a default region.
+   It is advisable to choose a AWS region that is not far from the location of the users of your services. 
+   For this example it does not matter.
+![terminal_configure_AWS_profile.png](images%2Fterminal_configure_AWS_profile.png)
+   - Next, we want to verify if everything worked correctly. Let's see if we can find your profile in the
+   list of available AWS profiles by typing `aws configure list-profiles` and by listing your AWS S3 buckets
+   by typing `aws s3api list-buckets --profile <profile_name>` into your terminal.
+![terminal_list_buckets.png](images%2Fterminal_list_buckets.png)
 
-____________________________
-work in progress
+3. Create a S3 bucket to keep track of your Terraform state:
+   - Now that we have an AWS profile, we can prepare for using Terraform. First, we need an S3 bucket
+   that Terraform can use to keep track of the state of the infrastructure we let Terraform create for us.
+   This is a manual process, because the name of the S3 bucket is an input to Terraform. You can either 
+   create an S3 bucket using the AWS console or you make use of your new profile.
+   - The command to create the S3 bucket is 
+   `aws s3api create-bucket --bucket <bucket_name> --region <aws_region> --create-bucket-configuration LocationConstraint=<aws_region> --profile <profile_name>`
+   - The create-bucket-configuration argument is required for regions different from `us-east-1`.
+![create_bucket_terminal.png](images%2Fcreate_bucket_terminal.png)
+   - For this example, I called my manually created S3 bucket `terraform-states-cloud`.
+   
+## Note
+You can easily remove an S3 bucket from your terminal using this command: 
+`aws s3api delete-bucket --bucket <bucket_name> --profile <profile_name>`. 
+It can only be deleted if it is empty. You can delete all it's content by using: 
+`aws s3 rm s3://<bucket_name> --recursive --profile <profile_name>
+`
 
-Create bucket before -> just choose a name and click on create bucket 
+4. Prepare Terraform:
+- best to have a separate folder
+- best practice to have a variables.tf file to define variables like that might change which will be pasted 
+to the main.tf file which defines the infrastructure
+- explain the purpose of the main.tf file and the content
 
-
- 
-
-Overview: 
-
-Create a user for local use of aws cli 
-
-Attach policy 
-
-aws configure or setting env vars or use a profile (different profiles, users, accounts) 
-
-Create a simple terraform file to create a s3 bucket 
-
-Apply and destroy 
-
-
-# s3bucket-via-terraform
-example of how to create a s3 bucket via terraform
-
-steps to take:
-
+5. Execute Terraform:
 `cd i
 nfrastructure`
 
@@ -84,5 +96,4 @@ nfrastructure`
 
 `terraform apply`
 
-`terraform destroy` 
-
+`terraform destroy`
